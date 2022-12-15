@@ -100,6 +100,7 @@ class FakeSas(sas_interface.SasInterface):
     pass
 
   def Registration(self, request, ssl_cert=None, ssl_key=None):
+    print(request)
     response = {'registrationResponse': []}
     for req in request['registrationRequest']:
       if 'fccId' not in req or 'cbsdSerialNumber' not in req:
@@ -111,16 +112,18 @@ class FakeSas(sas_interface.SasInterface):
         'cbsdId': req['fccId'] + '/' + req['cbsdSerialNumber'],
         'response': self._GetSuccessResponse()
     })
+    print(response)
     return response
 
   def SpectrumInquiry(self, request, ssl_cert=None, ssl_key=None):
+    print(request)
     response = {'spectrumInquiryResponse': []}
     for req in request['spectrumInquiryRequest']:
       response['spectrumInquiryResponse'].append({
           'cbsdId': req['cbsdId'],
           'availableChannel': {
               'frequencyRange': {
-                  'lowFrequency': 3620000000,
+                  'lowFrequency': 3610000000,
                   'highFrequency': 3630000000
               },
               'channelType': 'GAA',
@@ -128,9 +131,11 @@ class FakeSas(sas_interface.SasInterface):
           },
           'response': self._GetSuccessResponse()
       })
+    print(response)
     return response
 
   def Grant(self, request, ssl_cert=None, ssl_key=None):
+    print(request)
     response = {'grantResponse': []}
     for req in request['grantRequest']:
       if ('cbsdId' not in req) :
@@ -148,12 +153,16 @@ class FakeSas(sas_interface.SasInterface):
           response['grantResponse'].append({
             'cbsdId': req['cbsdId'],
             'grantId': 'fake_grant_id_%s' % datetime.utcnow().isoformat(),
+            'grantExpireTime': '%s' % (datetime.utcnow() + timedelta(days=1)).isoformat(),
             'channelType': 'GAA',
+            'heartbeatInterval': 10,
             'response': self._GetSuccessResponse()
           })
+    print(response)
     return response
 
   def Heartbeat(self, request, ssl_cert=None, ssl_key=None):
+    print(request)
     response = {'heartbeatResponse': []}
     for req in request['heartbeatRequest']:
       transmit_expire_time = datetime.utcnow().replace(
@@ -164,6 +173,7 @@ class FakeSas(sas_interface.SasInterface):
           'transmitExpireTime': transmit_expire_time.isoformat() + 'Z',
           'response': self._GetSuccessResponse()
       })
+    print(response)
     return response
 
   def Relinquishment(self, request, ssl_cert=None, ssl_key=None):
@@ -443,7 +453,9 @@ def RunFakeServer(cbsd_sas_version, sas_sas_version, is_ecc, crl_index):
   FakeSasHandler.SetVersion(cbsd_sas_version, sas_sas_version)
   if is_ecc:
     assert ssl.HAS_ECDH
-  server = HTTPServer(('localhost', PORT), FakeSasHandler)
+  server = HTTPServer(('0.0.0.0', PORT), FakeSasHandler)
+  print('Will start server at localhost:%d, use <Ctrl-C> to stop.' % PORT)
+  server.serve_forever()
 
   ssl_context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
   ssl_context.options |= ssl.CERT_REQUIRED
