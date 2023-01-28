@@ -365,6 +365,7 @@ class FakeSasHandler(BaseHTTPRequestHandler):
     """Handles POST requests."""
 
     length = int(self.headers.getheader('content-length'))
+    # length = int(self.headers.get('content-length'))
     if length > 0:
       request = json.loads(self.rfile.read(length))
     if self.path == '/%s/registration' % self.cbsd_sas_version:
@@ -516,7 +517,8 @@ if __name__ == '__main__':
     parser.print_help()
     sys.exit(0)
   config_parser = configparser.RawConfigParser()
-  config_parser.read(['sas.cfg'])
+  # config_parser.read(['sas.cfg'])
+  config_parser.read([os.path.join(os.path.abspath(os.path.dirname(__file__)), 'sas.cfg')])
   cbsd_sas_version = config_parser.get('SasConfig', 'CbsdSasVersion')
   sas_sas_version = config_parser.get('SasConfig', 'SasSasVersion')
   RunFakeServer(cbsd_sas_version, sas_sas_version, args.ecc, args.crl_index)

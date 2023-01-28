@@ -1,0 +1,11 @@
+FROM continuumio/miniconda3:latest
+
+RUN conda create --name winnf3 python=3.7 -y && echo "conda activate winnf3" >> ~/.bashrc
+
+# new shell session to activate the conda environment
+SHELL ["/bin/bash", "--login", "-c"]
+
+RUN conda install -y numpy shapely gdal lxml jsonschema matplotlib cartopy cryptography pyopenssl pycurl && \
+	pip3 install pygc pykml xlsxwriter jwt portpicker psutil ftputil
+
+
